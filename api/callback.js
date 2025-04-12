@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
     );
 
     if (addRes.status === 201 || addRes.status === 204) {
-      return res.send("✅ Đã xong, hãy quay trở lại Discord để tiếp tục đăng ký!");
+      return res.redirect("https://discord.com/oauth2/authorized");
     } else {
       return res
         .status(addRes.status)
