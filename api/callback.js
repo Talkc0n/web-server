@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports = async (req, res) => {
   const code = req.query.code;
-  if (!code) return res.status(400).send("Hello world, Draken here! Nothing happened!");
+  if (!code) return res.status(400).redirect("https://discord.gg/4CHBF9WBmM");
 
   const {
     CLIENT_ID,
@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
     } else {
       return res
         .status(addRes.status)
-        .send("❌ Không thể xử lý yêu cầu đăng ký của bạn! Đã xảy ra lỗi ngoài ý muốn!");
+        .redirect("https://discord.gg/4CHBF9WBmM");
     }
   } catch (err) {
     return res
