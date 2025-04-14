@@ -1,69 +1,61 @@
-const axios = require("axios");
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
-  const code = req.query.code;
-  if (!code) return res.status(400).redirect("https://discord.gg/4CHBF9WBmM");
+  const { code } = req.query;
 
-  const {
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI,
-    GUILD_ID,
-    BOT_TOKEN,
-  } = process.env;
+  if (!code) {
+    // Chuyển hướng đến server Discord khi có lỗi
+    return res.redirect('https://discord.gg/4CHBF9WBmM');
+  }
 
   try {
-    const tokenRes = await axios.post(
-      "https://discord.com/api/oauth2/token",
-      new URLSearchParams({
+    const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+    const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
+    const REDIRECT_URI = 'https://talkc0n.vercel.app/api/callback';
+
+    // Trao đổi code để lấy access token
+    const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
+      method: 'POST',
+      body: new URLSearchParams({
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
-        grant_type: "authorization_code",
         code,
+        grant_type: 'authorization_code',
         redirect_uri: REDIRECT_URI,
-        scope: "identify guilds.join",
+        scope: 'identify',
       }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-
-    const access_token = tokenRes.data.access_token;
-    const token_type = tokenRes.data.token_type;
-
-    const userRes = await axios.get("https://discord.com/api/users/@me", {
       headers: {
-        Authorization: `${token_type} ${access_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
 
-    const user_id = userRes.data.id;
+    const tokenData = await tokenResponse.json();
 
-    const addRes = await axios.put(
-      `https://discord.com/api/guilds/${GUILD_ID}/members/${user_id}`,
-      {
-        access_token: access_token,
-      },
-      {
-        headers: {
-          Authorization: `Bot ${BOT_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (addRes.status === 201 || addRes.status === 204) {
-      return res.redirect("https://discord.com/oauth2/authorized");
-    } else {
-      return res
-        .status(addRes.status)
-        .redirect("https://discord.gg/4CHBF9WBmM");
+    if (!tokenResponse.ok) {
+      // Chuyển hướng đến server Discord khi có lỗi token
+      return res.redirect('https://discord.gg/4CHBF9WBmM');
     }
-  } catch (err) {
-    return res
-      .status(500)
-      .send("⚠️ Lỗi trong quá trình xử lý: " + err.message);
+
+    // Lấy thông tin người dùng
+    const userResponse = await fetch('https://discord.com/api/users/@me', {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      // Chuyển hướng đến server Discord khi có lỗi user data
+      return res.redirect('https://discord.gg/4CHBF9WBmM');
+    }
+
+    const userData = await userResponse.json();
+
+    // Nếu mọi thứ thành công, chuyển hướng đến trang authorized của Discord
+    res.redirect('https://discord.com/oauth2/authorized');
+
+  } catch (error) {
+    console.error('Lỗi:', error);
+    // Chuyển hướng đến server Discord khi có lỗi bất kỳ
+    res.redirect('https://discord.gg/4CHBF9WBmM');
   }
 };
