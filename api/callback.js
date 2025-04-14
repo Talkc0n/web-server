@@ -9,9 +9,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-    const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-    const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+    const CLIENT_ID = process.env.CLIENT_ID;
+    const CLIENT_SECRET = process.env.CLIENT_SECRET;
+    const BOT_TOKEN = process.env.BOT_TOKEN;
     const REDIRECT_URI = 'https://talkc0n.vercel.app/api/callback';
 
     // Trao đổi code để lấy access token
