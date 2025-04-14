@@ -68,6 +68,25 @@ module.exports = async (req, res) => {
       return res.redirect('https://discord.gg/4CHBF9WBmM');
     }
 
+    // Gửi thông báo đến bot về việc người dùng đã authorize thành công
+    await fetch('https://discord.com/api/v10/channels/' + process.env.BOT_CHANNEL_ID + '/messages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bot ${BOT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content: `auth_success:${userData.id}`,
+      }),
+    });
+
+    // Lưu trạng thái authorize vào database tạm thời
+    await fetch(process.env.WEBAPP_URL + '/api/store-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userData.id, timestamp: Date.now() }),
+    });
+
     // Nếu mọi thứ thành công, chuyển hướng đến trang authorized
     res.redirect('https://discord.com/oauth2/authorized');
 
